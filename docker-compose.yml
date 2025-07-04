@@ -1,0 +1,19 @@
+version: '3.8'
+
+services:
+  yorumm-frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "3003:3000"  # Port 3003 kullanıyorum çünkü diğerleri dolu
+    environment:
+      - NODE_ENV=production
+    container_name: yorumm-frontend
+    restart: unless-stopped
+    networks:
+      - yorumm-network
+
+networks:
+  yorumm-network:
+    driver: bridge 
