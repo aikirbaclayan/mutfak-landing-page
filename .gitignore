@@ -42,3 +42,9 @@ next-env.d.ts
 
 # OS
 Thumbs.db
+
+# Özel / iç notlar — repoya ve GitHub’a girmesin (hukuki analiz, taslaklar)
+UX_UI_HUKUKI_ANALIZ_RAPORU.md
+işletmearayüzü.md
+mutfakyazılımilkaşamadaneyapıcak.md
+neleryapacagız.md
