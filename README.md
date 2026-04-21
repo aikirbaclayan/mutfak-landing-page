@@ -42,8 +42,8 @@ Restoran ve hizmet işletmeleri için **QR kod tabanlı geri bildirim**, **işle
 ### 1. Depoyu klonlayın ve bağımlılıkları yükleyin
 
 ```bash
-git clone <repo-url>
-cd yorumm
+git clone https://github.com/aikirbaclayan/mutfak-landing-page.git
+cd mutfak-landing-page
 npm install
 ```
 
