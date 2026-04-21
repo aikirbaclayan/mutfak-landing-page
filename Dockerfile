@@ -1,52 +1,66 @@
-# Install dependencies only when needed
-FROM node:18-alpine AS deps
-
-RUN apk add --no-cache libc6-compat
+# Base stage - Common dependencies
+FROM node:18-alpine AS base
+RUN apk add --no-cache libc6-compat openssl
 WORKDIR /app
 
-# Install dependencies
+# Install dependencies stage
+FROM base AS deps
 COPY package.json package-lock.json* ./
 RUN npm ci
 
-# Rebuild the source code only when needed
-FROM node:18-alpine AS builder
-WORKDIR /app
+# Development stage
+FROM base AS development
+COPY package.json package-lock.json* ./
+RUN npm ci --include=dev
+COPY . .
+
+# Generate Prisma client
+RUN npx prisma generate
+
+EXPOSE 3003
+ENV PORT 3003
+ENV HOSTNAME "0.0.0.0"
+
+CMD ["npm", "run", "dev"]
+
+# Build stage for production
+FROM base AS builder
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
-# Next.js collects completely anonymous telemetry data about general usage.
-# Learn more here: https://nextjs.org/telemetry
-# Uncomment the following line in case you want to disable telemetry during the build.
-ENV NEXT_TELEMETRY_DISABLED 1
+# Generate Prisma client for production
+RUN npx prisma generate
 
+# Build the application
+ENV NEXT_TELEMETRY_DISABLED 1
 RUN npm run build
 
-# Production image, copy all the files and run next
-FROM node:18-alpine AS runner
+# Production stage
+FROM base AS production
 WORKDIR /app
 
-ENV NODE_ENV production
-ENV NEXT_TELEMETRY_DISABLED 1
+ENV NODE_ENV=production
+ENV NEXT_TELEMETRY_DISABLED=1
 
+# Create nextjs user
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
 
+# Copy built application
 COPY --from=builder /app/public ./public
+COPY --from=builder /app/.next/standalone ./
+COPY --from=builder /app/.next/static ./.next/static
 
-# Set the correct permission for prerender cache
-RUN mkdir .next
-RUN chown nextjs:nodejs .next
+# Copy Prisma files
+COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
+COPY --from=builder /app/prisma ./prisma
 
-# Automatically leverage output traces to reduce image size
-# https://nextjs.org/docs/advanced-features/output-file-tracing
-COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
-COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
-
+# Set correct permissions
+RUN chown -R nextjs:nodejs /app
 USER nextjs
 
-EXPOSE 3000
-
-# Railway will set PORT environment variable
-ENV HOSTNAME "0.0.0.0"
+EXPOSE 3003
+ENV PORT=3003
+ENV HOSTNAME="0.0.0.0"
 
 CMD ["node", "server.js"] 

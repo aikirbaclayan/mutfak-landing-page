@@ -4,6 +4,7 @@ import Header from '@/components/Header'
 import Footer from '@/components/Footer'
 import { ThemeProvider } from '@/lib/theme-provider'
 import { LanguageProvider } from '@/lib/language-provider'
+import SessionProviderWrapper from '@/components/SessionProviderWrapper'
 import '../styles/globals.css'
 
 // Premium Font Configuration
@@ -274,6 +275,7 @@ export default function RootLayout({
       <body className="font-sans antialiased bg-white dark:bg-slate-900 text-gray-900 dark:text-gray-100 selection:bg-primary-100 selection:text-primary-900 transition-colors duration-300">
         <ThemeProvider defaultTheme="system">
           <LanguageProvider defaultLanguage="tr">
+            <SessionProviderWrapper>
             {/* Performance monitoring - disable in development */}
             {process.env.NODE_ENV === 'production' && (
               <>
@@ -433,6 +435,7 @@ export default function RootLayout({
                 `,
               }}
             />
+            </SessionProviderWrapper>
           </LanguageProvider>
         </ThemeProvider>
       </body>
